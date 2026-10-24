@@ -1,28 +1,86 @@
-## WELCOME
+# Mermaid Compiler
 
-Hello there! :wave:
+Mermaid Compiler is a dependency-free Node.js preprocessor for Mermaid class
+diagrams. It lets you split a large diagram into smaller files with import
+directives, then generates one Mermaid file containing only the classes needed
+by the entry diagram.
 
-The idea behind is project was my frustration with mermaid, i mean
-you probably know how annoying it is to making a hug class diagram describing
-your project, and if you want to splitting nothing gets easer.
+## Requirements
 
-Whatever i wont yap too much....
+- Node.js 18 or newer
 
-This is a mermaid "compiler", so you can split your mermaid code into smaller
-files and just import whatever is spread all across those files.
+## Install globally
 
-## INSTALATION
+From a clone of this repository:
 
-You can install this application in your system by using `git clone`, this project
-is not yet in npm or any other nodejs repository nor bun nor dino.
+```sh
+npm install -g .
+```
 
-If you want it in a different project you can just move the git result, This projects directory
-into your `node_modules` folder.
+This exposes the `mmdcompiler` command. The older `mmdcopiler` spelling is also
+registered as a compatibility alias.
 
-## USAGE
+## Usage
 
-To use this application/script you must run:
-`npx mmdcopiler -i ORIGINAL_FILE  -o RESULTING_FILE`
+```sh
+mmdcompiler -i diagrams/main.mmd -o generated/diagram.mmd
+```
 
-And that's it, `ORIGINAL_FILE` is the file this application is gonna read,
-and the `RESULTING_FILE` is the output of the "compilation".
+The compiler runs once immediately and then keeps running, watching the entry
+file and all of its imported files. The output is regenerated when a relevant
+file changes.
+
+To compile once and exit:
+
+```sh
+mmdcompiler -i diagrams/main.mmd -o generated/diagram.mmd --once
+```
+
+Useful options:
+
+```text
+-i, --input <file>       Entry Mermaid file
+-o, --output <file>      Generated Mermaid file
+    --once               Compile once and exit
+    --watch              Keep watching (default)
+    --debounce <ms>      Delay recompilation (default: 100)
+-h, --help               Show help
+-v, --version            Show the version
+```
+
+## Imports and dependency direction
+
+Imports are written as Mermaid comments and are relative to the file containing
+the import:
+
+```mermaid
+%%# import ./types.mmd
+classDiagram
+
+class Main {
+  User user;
+}
+```
+
+If `Main` depends on `User`, the compiler includes `User` and recursively
+includes its dependencies. It does not traverse relationships backwards: if
+`Admin --|> User`, `Admin` is not included just because `User` was included.
+Unrelated classes in an imported file are also omitted.
+
+The compiler also:
+
+- resolves nested relative imports;
+- detects circular imports and reports an error;
+- gives definitions in the entry file precedence over imported duplicates;
+- preserves the entry diagram's top-level Mermaid statements;
+- follows common class relationships and class-member type references.
+
+## Development
+
+The project has no runtime dependencies. Run the native Node.js test suite with:
+
+```sh
+npm test
+```
+
+The project specification is in [docs/project description.md](docs/project%20description.md).

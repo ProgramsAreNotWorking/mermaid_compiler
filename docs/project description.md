@@ -82,28 +82,25 @@ classdiagram
     }
 ```
 
-The result of these two diagrams should be a new file placed in a folder chose
-by the user, this new file should be a smart convination of the main file
-and all its dependencies and the dependencies of those files in a way that if
-I try to compile the first diagram i must have the following result.
+The result of these two diagrams should be a new file placed in a folder chosen
+by the user. This new file should combine the main file with the classes it
+depends on, and with the dependencies of those classes. The compiler must
+follow relationships in the direction of the dependency. Since `main` depends
+on `INumber`, `INumber` is included. `Second` is not included because it
+depends on `INumber`; it is a dependent of `INumber`, not a dependency of
+`main`. `Some` is unrelated and is not included either.
+
+Therefore, compiling the first diagram should produce:
 
 ```mermaid
 classdiagram
 
 
   main --> INumber
-  Second --|> INumber
-
   class main {
       <<Class>>
       INumber children;
     }
-
-  class Second {
-      <<Class>>
-      bool isActive;
-    }
-
 
   class INumber {
     <<Interface>>
@@ -112,11 +109,11 @@ classdiagram
   }
 ```
 
-Keep in mind that the merging process should only work with dependencies downwards
-and never up words, which means, if a class/component A depends on B and another
-class diagram is importing B, A should also be import with his relationship to be,
-but if A would be the imported one, B shouldn't be imported and they relationship
-should not be considered for the resulting file.
+Keep in mind that the merging process must follow dependencies downwards and
+never include dependents by traversing relationships backwards. If `A --> B`,
+then `A` depends on `B`: starting from `A`, the compiler may include `B` and
+any dependencies of `B`, but it must not include other classes that depend on
+`B`.
 
 You should know that the compiler must, localize the definitions of classes and
 their relationship so it can put them in the merged file.
@@ -133,8 +130,17 @@ The importing rules are simple:
 
 - The importing path must be relative to the path of the importing file.
 
-- The relationship must be in the direction of the dependency, which means that
-  the imported class will come with all its dependencies, but it will not take its
-  dependents with it.
+- Relationships must be followed in the direction of the dependency. If a
+  class from the main diagram depends on an imported class, that imported class
+  is included together with all of its dependencies. Classes that depend on the
+  imported class are not included unless the main diagram depends on them
+  directly or through another dependency.
 
 ## Importing direction
+
+For a relationship `A --> B`, `A` depends on `B`. Compilation starts with
+the classes and relationships in the entry file, then follows each relationship
+from its dependent to its dependency. A class reached this way is included
+together with its own dependencies. The compiler never follows an edge in the
+opposite direction, so classes that depend on an included class are not pulled
+into the result unless the entry diagram reaches them independently.
