@@ -10,7 +10,7 @@ For example, imagine we have a very huge diagram this:
 > > Of course this on is just a small diagram that we are using as an example.
 
 ```mermaid
-classdiagram
+classDiagram
 
 
   main --> INumber
@@ -45,7 +45,7 @@ First part:
 
 ```mermaid
 %%# import ./secondMermaid.mmd
-classdiagram
+classDiagram
   main --> INumber
 
   class main {
@@ -61,7 +61,7 @@ Second part:
 > > Lets imagine too that this diagram is in another file called secondMermaid.mmd
 
 ```mermaid
-classdiagram
+classDiagram
   Second --|> INumber
 
   class Second {
@@ -93,7 +93,7 @@ depends on `INumber`; it is a dependent of `INumber`, not a dependency of
 Therefore, compiling the first diagram should produce:
 
 ```mermaid
-classdiagram
+classDiagram
 
 
   main --> INumber
